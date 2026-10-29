@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#c2392b">
+<title>汉字闯关 · Hanzi Quest</title>
+<meta name="description" content="A listen, match, speak and build game for reinforcing Chinese vocabulary.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23c2392b'/%3E%3Ctext x='50' y='72' font-size='64' text-anchor='middle' fill='%23fff' font-family='serif'%3E字%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f6f0e3;--card:#fffaf1;--ink:#231e17;--soft:#6a5f50;--line:#e3d8c1;
+  --red:#c2392b;--btn:#c2392b;--btn-d:#982b1f;--gold:#d09a26;--jade:#2e7d5a;--jade-bg:#dff0e5;
+  --bad:#b3261e;--bad-bg:#f8e0dc;--sel-bg:#fbe6e2;
+  --shadow:0 1px 0 rgba(0,0,0,.04),0 6px 18px rgba(60,40,10,.08);
+  --serif:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --sans:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{--paper:#17130e;--card:#221d16;--ink:#f1e8d6;--soft:#b2a58f;--line:#3a3226;--red:#e0584a;
+    --jade:#58b98b;--jade-bg:#183427;--bad:#f0877d;--bad-bg:#3b1d19;--sel-bg:#3b211d;--gold:#e6b550;
+    --shadow:0 6px 18px rgba(0,0,0,.4)}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:16px/1.5 var(--sans);color:var(--ink);
+  background:radial-gradient(circle at 8% -5%,rgba(194,57,43,.10),transparent 38%),radial-gradient(circle at 100% 100%,rgba(208,154,38,.10),transparent 40%),var(--paper);
+  min-height:100vh;min-height:100dvh}
+#app{max-width:720px;margin:0 auto;padding:16px 16px 64px}
+h1,h2{font-family:var(--serif);margin:0}
+h2{font-size:1.25rem;line-height:1.35;margin:18px 0 8px}
+.sub{color:var(--soft);margin:4px 0 12px}
+.note{background:var(--bad-bg);color:var(--bad);border-radius:12px;padding:10px 14px;font-size:.9rem}
+.hidden{display:none!important}
+.center{text-align:center}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.zhw,.big,.tile,.slot,.sentence{font-family:var(--serif)}
+
+/* buttons */
+.btn{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:12px 20px;font-weight:600;cursor:pointer;min-height:48px}
+.btn.primary{background:var(--btn);border-color:var(--btn-d);color:#fff;box-shadow:0 3px 0 var(--btn-d)}
+.btn.primary:active{transform:translateY(2px);box-shadow:0 1px 0 var(--btn-d)}
+.btn.ghost{background:transparent}
+.btn.quiet{border-color:transparent;background:transparent;color:var(--soft);padding:10px 12px;min-height:44px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:18px 0}
+.spk{border:2px solid var(--line);background:var(--card);border-radius:50%;width:48px;height:48px;font-size:1.2rem;cursor:pointer;flex:none}
+.spk.sm{width:40px;height:40px;font-size:1rem}
+.spk.huge{width:88px;height:88px;font-size:2.2rem;border-color:var(--red);box-shadow:var(--shadow)}
+
+/* home */
+.hero{text-align:center;padding:28px 0 8px}
+.seal{width:76px;height:76px;margin:0 auto 10px;border-radius:14px;background:var(--btn);color:#fff;display:grid;place-items:center;font:700 2.7rem var(--serif);transform:rotate(-4deg);box-shadow:var(--shadow)}
+.hero h1{font-size:2.2rem;letter-spacing:.12em}
+.tag{color:var(--soft);margin:4px 0 12px}
+.chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.chips span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-weight:600;font-size:.9rem}
+.map{list-style:none;padding:0;margin:8px 0;display:grid;gap:12px}
+.level{width:100%;text-align:left;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px 16px;cursor:pointer;box-shadow:var(--shadow)}
+.level:not(:disabled):hover{border-color:var(--red)}
+.level:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+.level .n{width:44px;height:44px;border-radius:50%;background:var(--btn);color:#fff;display:grid;place-items:center;font-weight:700}
+.level:disabled .n{background:var(--soft)}
+.level .ws{font:500 1.05rem/1.4 var(--serif)}
+.level .meta{color:var(--soft);font-size:.8rem}
+.level .st{font-size:1.1rem;color:var(--gold);white-space:nowrap}
+footer{margin-top:28px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+/* level shell */
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lv{font:700 1.05rem var(--serif)}
+.xp{font-weight:600;font-size:.9rem;min-width:84px;text-align:right}
+.steps{list-style:none;display:flex;gap:6px;padding:0;margin:10px 0 4px}
+.steps li{flex:1;height:8px;border-radius:99px;background:var(--line);position:relative}
+.steps li span{position:absolute;left:0;top:12px;font-size:.62rem;color:var(--soft);white-space:nowrap;display:none}
+.steps li.done{background:var(--jade)}
+.steps li.now{background:var(--red)}
+.steps li.now span{display:block}
+.stage{padding-top:14px}
+.count{color:var(--soft);font-size:.85rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+
+/* cards */
+.cards{display:grid;gap:12px}
+.wcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:var(--shadow)}
+.wrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.big{font-size:2rem;font-weight:700;line-height:1.2}
+.big.xl{font-size:2.8rem}
+.py{color:var(--red);font-weight:600}
+.py.xl{font-size:1.9rem;font-family:var(--sans)}
+.en{font-weight:600}
+.en.lg{font-size:1.5rem}
+.zh{color:var(--soft);font-size:.95rem;font-family:var(--serif)}
+.ex{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-family:var(--serif)}
+mark{background:linear-gradient(transparent 55%,rgba(208,154,38,.5) 0);color:inherit}
+.focus{text-align:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 14px;margin:10px 0;box-shadow:var(--shadow);display:grid;gap:6px;justify-items:center}
+
+/* tiles */
+.slots{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:22px 0}
+.slot{width:50px;height:60px;border-bottom:3px solid var(--ink);display:inline-grid;place-items:center;font-size:2rem;font-weight:700}
+.slot.filled{border-color:var(--jade);color:var(--jade)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:10px;margin:14px 0}
+.tiles.wide{display:flex;flex-wrap:wrap;justify-content:center;min-height:70px}
+.tile{font-size:1.7rem;font-weight:600;line-height:1;min-height:64px;padding:8px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);box-shadow:0 3px 0 var(--line);cursor:pointer}
+.tile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.tile.used{opacity:.22}
+.tile.chunk{font-size:1.25rem;min-height:56px}
+.answer{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-content:flex-start;min-height:92px;padding:14px;border:2px dashed var(--line);border-radius:16px;background:var(--card);margin:12px 0}
+.answer.good{border-color:var(--jade);background:var(--jade-bg)}
+.ph{color:var(--soft);align-self:center}
+.hintbar{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;color:var(--soft)}
+
+/* matching */
+.match{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.col{display:grid;gap:10px;align-content:start}
+.mbtn{min-height:60px;border-radius:14px;border:2px solid var(--line);background:var(--card);padding:8px 10px;font-weight:600;cursor:pointer;word-break:break-word}
+.mbtn.zhw{font-size:1.3rem}
+.mbtn.sel{border-color:var(--red);background:var(--sel-bg)}
+.mbtn.ok{border-color:var(--jade);background:var(--jade-bg);cursor:default}
+
+/* quiz */
+.sentence{font-size:1.4rem;line-height:1.7;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:10px 0}
+.blank{display:inline-block;min-width:3.4em;border-bottom:3px solid var(--red);color:var(--red);text-align:center}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.opt{min-height:66px;border-radius:14px;border:2px solid var(--line);background:var(--card);font-size:1.3rem;padding:8px;cursor:pointer;box-shadow:0 3px 0 var(--line)}
+.opt:disabled{cursor:default}
+.opt.ok{background:var(--jade-bg);border-color:var(--jade)}
+.opt.bad{background:var(--bad-bg);border-color:var(--bad)}
+.typeform{display:flex;gap:10px;margin:12px 0}
+.typeform input{flex:1;min-width:0;font:600 1.5rem var(--serif);padding:10px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+
+/* mic + feedback */
+.mic{text-align:center;margin:14px 0}
+.mic-btn{font-size:1.15rem;padding:16px 28px;border-radius:999px}
+.mic-btn.listening{animation:pulse 1s infinite;border-color:var(--red)}
+.msg{color:var(--soft);min-height:1.5em;margin:8px 0}
+.fb{min-height:1.6em;text-align:center;font-weight:600;border-radius:12px}
+.fb.good{color:var(--jade);background:var(--jade-bg);padding:10px}
+.fb.bad{color:var(--bad);background:var(--bad-bg);padding:10px}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(194,57,43,.5)}100%{box-shadow:0 0 0 18px rgba(194,57,43,0)}}
+.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+/* results */
+.result{text-align:center}
+.stars{font-size:3rem;color:var(--gold);letter-spacing:.1em}
+.score{font:700 1.6rem var(--serif)}
+.chiplist{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:14px 0}
+.chiplist span{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-family:var(--serif)}
+.list{list-style:none;padding:0;margin:12px 0;display:grid;gap:8px}
+.list li{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9}
+.confetti i{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+@media (max-width:420px){.big.xl{font-size:2.3rem}.opts{gap:8px}.slot{width:40px;height:52px;font-size:1.7rem}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app"><noscript>Please enable JavaScript to play Hanzi Quest.</noscript></div>
+<script>
+(function(){
+'use strict';
+
+/* ---------- Data ---------- */
+const WORDS = [
+ {
+  "id": 0,
+  "w": "油漆",
+  "py": "yóu qī",
+  "zh": "涂在物体表面、用来保护和装饰的涂料",
+  "en": "paint",
+  "sent": "工人把栏杆刷上一层新油漆，看起来亮多了。",
+  "s": [
+   "工人把栏杆",
+   "刷上一层",
+   "新油漆，",
+   "看起来",
+   "亮多了。"
+  ]
+ },
+ {
+  "id": 1,
+  "w": "栏杆",
+  "py": "lán gān",
+  "zh": "桥边、楼梯旁等地方用来拦挡的横杆",
+  "en": "railing",
+  "sent": "他靠着桥边的栏杆，看河里的鱼游来游去。",
+  "s": [
+   "他靠着",
+   "桥边的",
+   "栏杆，",
+   "看河里的",
+   "鱼",
+   "游来游去。"
+  ]
+ },
+ {
+  "id": 2,
+  "w": "宿舍",
+  "py": "sù shè",
+  "zh": "供学生或工作人员住宿的房子",
+  "en": "dormitory",
+  "sent": "放学后，他回到宿舍放下书包就去食堂吃饭。",
+  "s": [
+   "放学后，",
+   "他回到",
+   "宿舍",
+   "放下书包",
+   "就去",
+   "食堂吃饭。"
+  ]
+ },
+ {
+  "id": 3,
+  "w": "凭",
+  "py": "píng",
+  "zh": "依靠、根据",
+  "en": "rely on; by means of",
+  "sent": "他凭着一双巧手，把破旧的模型修好了。",
+  "s": [
+   "他",
+   "凭着",
+   "一双巧手，",
+   "把破旧的",
+   "模型",
+   "修好了。"
+  ]
+ },
+ {
+  "id": 4,
+  "w": "欣慰",
+  "py": "xīn wèi",
+  "zh": "心里感到高兴和安慰",
+  "en": "gratified; pleased",
+  "sent": "看到孩子主动帮奶奶提菜，妈妈脸上露出欣慰的笑容。",
+  "s": [
+   "看到孩子",
+   "主动",
+   "帮奶奶",
+   "提菜，",
+   "妈妈脸上",
+   "露出",
+   "欣慰的",
+   "笑容。"
+  ]
+ },
+ {
+  "id": 5,
+  "w": "订购",
+  "py": "dìng gòu",
+  "zh": "预先约定购买",
+  "en": "order",
+  "sent": "妈妈在网上订购了一箱水果，明天送到家。",
+  "s": [
+   "妈妈",
+   "在网上",
+   "订购了",
+   "一箱水果，",
+   "明天",
+   "送到家。"
+  ]
+ },
+ {
+  "id": 6,
+  "w": "塔台",
+  "py": "tǎ tái",
+  "zh": "机场里指挥飞机起降的高塔形建筑",
+  "en": "control tower",
+  "sent": "塔台里的指挥员正用无线电指挥飞机降落。",
+  "s": [
+   "塔台里的",
+   "指挥员",
+   "正用",
+   "无线电",
+   "指挥",
+   "飞机降落。"
+  ]
+ },
+ {
+  "id": 7,
+  "w": "范围",
+  "py": "fàn wéi",
+  "zh": "周围界限以内的地方或领域",
+  "en": "scope; range",
+  "sent": "这次考试的范围是课本第一到第五课。",
+  "s": [
+   "这次",
+   "考试的",
+   "范围",
+   "是课本",
+   "第一到",
+   "第五课。"
+  ]
+ },
+ {
+  "id": 8,
+  "w": "特殊",
+  "py": "tè shū",
+  "zh": "跟一般情况不一样、很特别",
+  "en": "special",
+  "sent": "今天是个特殊的日子，是爷爷的七十大寿。",
+  "s": [
+   "今天是个",
+   "特殊的",
+   "日子，",
+   "是爷爷的",
+   "七十大寿。"
+  ]
+ },
+ {
+  "id": 9,
+  "w": "警惕",
+  "py": "jǐng tì",
+  "zh": "对可能的危险保持小心注意",
+  "en": "alert; vigilant",
+  "sent": "夜里走路要警惕，别只顾着看手机。",
+  "s": [
+   "夜里",
+   "走路要",
+   "警惕，",
+   "别只顾着",
+   "看手机。"
+  ]
+ },
+ {
+  "id": 10,
+  "w": "失误",
+  "py": "shī wù",
+  "zh": "因疏忽而出的差错",
+  "en": "mistake; error",
+  "sent": "他一次小小的失误，让球队丢了一分。",
+  "s": [
+   "他一次",
+   "小小的",
+   "失误，",
+   "让球队",
+   "丢了",
+   "一分。"
+  ]
+ },
+ {
+  "id": 11,
+  "w": "不堪设想",
+  "py": "bù kān shè xiǎng",
+  "zh": "结果严重得让人不敢想象",
+  "en": "too dreadful to imagine",
+  "sent": "如果大火烧到油库，后果不堪设想。",
+  "s": [
+   "如果",
+   "大火",
+   "烧到",
+   "油库，",
+   "后果",
+   "不堪设想。"
+  ]
+ },
+ {
+  "id": 12,
+  "w": "脂肪",
+  "py": "zhī fáng",
+  "zh": "人和动物体内储存能量的物质",
+  "en": "fat",
+  "sent": "这种零食脂肪太高，吃多了容易发胖。",
+  "s": [
+   "这种",
+   "零食",
+   "脂肪",
+   "太高，",
+   "吃多了",
+   "容易",
+   "发胖。"
+  ]
+ },
+ {
+  "id": 13,
+  "w": "截至",
+  "py": "jié zhì",
+  "zh": "到某个时间为止",
+  "en": "as of; up to",
+  "sent": "截至昨天，报名参加比赛的同学已有三十人。",
+  "s": [
+   "截至",
+   "昨天，",
+   "报名",
+   "参加比赛的",
+   "同学",
+   "已有",
+   "三十人。"
+  ]
+ },
+ {
+  "id": 14,
+  "w": "行驶",
+  "py": "xíng shǐ",
+  "zh": "车辆等在路上行走",
+  "en": "travel; drive",
+  "sent": "汽车在高速公路上平稳地行驶着。",
+  "s": [
+   "汽车",
+   "在高速公路上",
+   "平稳地",
+   "行驶着。"
+  ]
+ },
+ {
+  "id": 15,
+  "w": "延误",
+  "py": "yán wù",
+  "zh": "因故推迟、耽误",
+  "en": "delay",
+  "sent": "因为大雾，好几班飞机都延误了。",
+  "s": [
+   "因为",
+   "大雾，",
+   "好几班",
+   "飞机",
+   "都",
+   "延误了。"
+  ]
+ },
+ {
+  "id": 16,
+  "w": "稳定",
+  "py": "wěn dìng",
+  "zh": "平稳、不轻易变动",
+  "en": "stable; steady",
+  "sent": "这几天他的病情稳定，医生说不用担心。",
+  "s": [
+   "这几天",
+   "他的",
+   "病情",
+   "稳定，",
+   "医生说",
+   "不用",
+   "担心。"
+  ]
+ },
+ {
+  "id": 17,
+  "w": "幕后",
+  "py": "mù hòu",
+  "zh": "不露面、在背后策划或支持",
+  "en": "behind the scenes",
+  "sent": "这场演出的成功，离不开幕后工作人员的辛苦。",
+  "s": [
+   "这场",
+   "演出的",
+   "成功，",
+   "离不开",
+   "幕后",
+   "工作人员的",
+   "辛苦。"
+  ]
+ },
+ {
+  "id": 18,
+  "w": "贡献",
+  "py": "gòng xiàn",
+  "zh": "拿出力量或东西为大家做事",
+  "en": "contribute; contribution",
+  "sent": "他为学校图书馆贡献了一百多本课外书。",
+  "s": [
+   "他为",
+   "学校",
+   "图书馆",
+   "贡献了",
+   "一百多本",
+   "课外书。"
+  ]
+ },
+ {
+  "id": 19,
+  "w": "明知山有虎，偏向虎山行",
+  "py": "míng zhī shān yǒu hǔ, piān xiàng hǔ shān xíng",
+  "zh": "明明知道有危险，还是勇敢地去做",
+  "en": "go ahead despite known risks",
+  "sent": "他知道这次比赛对手很强，仍报名参加，真是明知山有虎，偏向虎山行。",
+  "s": [
+   "他知道",
+   "这次",
+   "比赛",
+   "对手很强，",
+   "仍报名",
+   "参加，",
+   "真是",
+   "明知山有虎，",
+   "偏向虎山行。"
+  ]
+ },
+ {
+  "id": 20,
+  "w": "漏液",
+  "py": "lòu yè",
+  "zh": "液体从容器里漏出来",
+  "en": "leak (of liquid)",
+  "sent": "电池漏液了，把遥控器里面弄得黏糊糊的。",
+  "s": [
+   "电池",
+   "漏液了，",
+   "把遥控器",
+   "里面",
+   "弄得",
+   "黏糊糊的。"
+  ]
+ },
+ {
+  "id": 21,
+  "w": "轨道",
+  "py": "guǐ dào",
+  "zh": "火车等行走的路线；也指事物发展的路线",
+  "en": "track; orbit",
+  "sent": "火车沿着轨道飞快地向前开去。",
+  "s": [
+   "火车",
+   "沿着",
+   "轨道",
+   "飞快地",
+   "向前",
+   "开去。"
+  ]
+ },
+ {
+  "id": 22,
+  "w": "凌晨",
+  "py": "líng chén",
+  "zh": "天快亮的时候",
+  "en": "before dawn; early morning",
+  "sent": "凌晨四点，清洁工人已经开始扫街了。",
+  "s": [
+   "凌晨",
+   "四点，",
+   "清洁",
+   "工人",
+   "已经",
+   "开始",
+   "扫街了。"
+  ]
+ },
+ {
+  "id": 23,
+  "w": "就绪",
+  "py": "jiù xù",
+  "zh": "一切准备妥当",
+  "en": "ready; in order",
+  "sent": "演出的一切都已就绪，只等观众入场。",
+  "s": [
+   "演出的",
+   "一切",
+   "都已",
+   "就绪，",
+   "只等",
+   "观众",
+   "入场。"
+  ]
+ },
+ {
+  "id": 24,
+  "w": "隧道",
+  "py": "suì dào",
+  "zh": "穿过山岭或地下修成的通道",
+  "en": "tunnel",
+  "sent": "火车钻进长长的隧道，车厢里一下子暗了下来。",
+  "s": [
+   "火车",
+   "钻进",
+   "长长的",
+   "隧道，",
+   "车厢里",
+   "一下子",
+   "暗了下来。"
+  ]
+ },
+ {
+  "id": 25,
+  "w": "扫描",
+  "py": "sǎo miáo",
+  "zh": "用仪器依次照射检查",
+  "en": "scan",
+  "sent": "保安用仪器扫描行李，检查有没有危险品。",
+  "s": [
+   "保安",
+   "用仪器",
+   "扫描",
+   "行李，",
+   "检查",
+   "有没有",
+   "危险品。"
+  ]
+ },
+ {
+  "id": 26,
+  "w": "裂痕",
+  "py": "liè hén",
+  "zh": "物体裂开后留下的痕迹",
+  "en": "crack; fissure",
+  "sent": "墙上有一道细细的裂痕，爸爸说要尽快修补。",
+  "s": [
+   "墙上",
+   "有一道",
+   "细细的",
+   "裂痕，",
+   "爸爸说",
+   "要尽快",
+   "修补。"
+  ]
+ },
+ {
+  "id": 27,
+  "w": "顺畅",
+  "py": "shùn chàng",
+  "zh": "顺利、通畅，没有阻碍",
+  "en": "smooth; unimpeded",
+  "sent": "今天的交通很顺畅，我们提前到了学校。",
+  "s": [
+   "今天的",
+   "交通",
+   "很",
+   "顺畅，",
+   "我们",
+   "提前到了",
+   "学校。"
+  ]
+ },
+ {
+  "id": 28,
+  "w": "全力以赴",
+  "py": "quán lì yǐ fù",
+  "zh": "用尽全部力量去做",
+  "en": "go all out",
+  "sent": "运动会上，他全力以赴，跑出了最好成绩。",
+  "s": [
+   "运动会上，",
+   "他",
+   "全力以赴，",
+   "跑出了",
+   "最好",
+   "成绩。"
+  ]
+ },
+ {
+  "id": 29,
+  "w": "职业",
+  "py": "zhí yè",
+  "zh": "一个人长期从事的工作",
+  "en": "occupation; profession",
+  "sent": "他的职业是医生，每天在医院给病人看病。",
+  "s": [
+   "他的",
+   "职业",
+   "是医生，",
+   "每天",
+   "在医院",
+   "给病人",
+   "看病。"
+  ]
+ },
+ {
+  "id": 30,
+  "w": "故障",
+  "py": "gù zhàng",
+  "zh": "机器等出了毛病，不能正常工作",
+  "en": "malfunction; fault",
+  "sent": "电梯出了故障，大家只好走楼梯。",
+  "s": [
+   "电梯",
+   "出了",
+   "故障，",
+   "大家",
+   "只好",
+   "走楼梯。"
+  ]
+ },
+ {
+  "id": 31,
+  "w": "岗位",
+  "py": "gǎng wèi",
+  "zh": "一个人工作、值班的位置",
+  "en": "post; position",
+  "sent": "节日里，警察仍坚守在岗位上。",
+  "s": [
+   "节日里，",
+   "警察",
+   "仍",
+   "坚守在",
+   "岗位上。"
+  ]
+ },
+ {
+  "id": 32,
+  "w": "新谣",
+  "py": "xīn yáo",
+  "zh": "新加坡本地创作的中文歌曲",
+  "en": "xinyao (Singaporean Chinese songs)",
+  "sent": "奶奶年轻时很喜欢听新谣，还会跟着哼唱。",
+  "s": [
+   "奶奶",
+   "年轻时",
+   "很喜欢听",
+   "新谣，",
+   "还会",
+   "跟着",
+   "哼唱。"
+  ]
+ },
+ {
+  "id": 33,
+  "w": "芝麻",
+  "py": "zhī ma",
+  "zh": "一种小小的、有香味的种子",
+  "en": "sesame",
+  "sent": "妈妈在饼上撒了一层芝麻，闻起来特别香。",
+  "s": [
+   "妈妈",
+   "在饼上",
+   "撒了",
+   "一层",
+   "芝麻，",
+   "闻起来",
+   "特别香。"
+  ]
+ },
+ {
+  "id": 34,
+  "w": "朗朗上口",
+  "py": "lǎng lǎng shàng kǒu",
+  "zh": "读起来顺口、好听好记",
+  "en": "catchy; easy to read aloud",
+  "sent": "这首儿歌朗朗上口，弟弟听两遍就会唱了。",
+  "s": [
+   "这首",
+   "儿歌",
+   "朗朗上口，",
+   "弟弟",
+   "听两遍",
+   "就会",
+   "唱了。"
+  ]
+ },
+ {
+  "id": 35,
+  "w": "奉献",
+  "py": "fèng xiàn",
+  "zh": "不求回报地付出",
+  "en": "dedicate; devote",
+  "sent": "老师把一生奉献给了教育事业。",
+  "s": [
+   "老师",
+   "把一生",
+   "奉献给了",
+   "教育",
+   "事业。"
+  ]
+ },
+ {
+  "id": 36,
+  "w": "繁荣",
+  "py": "fán róng",
+  "zh": "经济发达、事物兴旺",
+  "en": "prosperous; flourishing",
+  "sent": "经过多年建设，这座小城变得繁荣起来。",
+  "s": [
+   "经过",
+   "多年",
+   "建设，",
+   "这座",
+   "小城",
+   "变得",
+   "繁荣起来。"
+  ]
+ },
+ {
+  "id": 37,
+  "w": "平凡",
+  "py": "píng fán",
+  "zh": "普通、不特别",
+  "en": "ordinary; common",
+  "sent": "他做着平凡的工作，却从不马虎。",
+  "s": [
+   "他做着",
+   "平凡的",
+   "工作，",
+   "却",
+   "从不",
+   "马虎。"
+  ]
+ },
+ {
+  "id": 38,
+  "w": "光芒",
+  "py": "guāng máng",
+  "zh": "向四面放射的光线",
+  "en": "rays of light; radiance",
+  "sent": "太阳冲出云层，放射出耀眼的光芒。",
+  "s": [
+   "太阳",
+   "冲出",
+   "云层，",
+   "放射出",
+   "耀眼的",
+   "光芒。"
+  ]
+ }
+];
+const PER = 5;                       // new words per level
+const BATCHES = Math.ceil(WORDS.length / PER);
+const PASS = 5;                      // correct answers (out of 7) to clear a checkpoint
+const batchWords = b => WORDS.slice(b * PER, b * PER + PER);
+
+/* ---------- Helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const app = document.getElementById('app');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const strip = s => s.replace(/[\s，。、！？；：,.!?;:'"“”‘’（）()\-—]/g, '');
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const hl = (sent, word) => esc(sent).replace(esc(word), '<mark>' + esc(word) + '</mark>');
+const shake = el => { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); };
+const starsHTML = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+
+/* ---------- Saved progress ---------- */
+const KEY = 'hanziQuest.v1';
+let save = { cleared: {}, xp: 0, all: false };
+try {
+  const s = JSON.parse(localStorage.getItem(KEY));
+  if (s && typeof s === 'object') save = { cleared: s.cleared || {}, xp: s.xp || 0, all: !!s.all };
+} catch (e) {}
+const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} };
+const isOpen = b => save.all || b === 0 || save.cleared[b - 1] > 0;
+
+/* ---------- Speech: text-to-speech ---------- */
+let zhVoice = null;
+function pickVoice() {
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices();
+  zhVoice = vs.find(v => /^zh[-_]CN/i.test(v.lang)) || vs.find(v => /^zh/i.test(v.lang)) || null;
+}
+if ('speechSynthesis' in window) {
+  pickVoice();
+  if (speechSynthesis.addEventListener) speechSynthesis.addEventListener('voiceschanged', pickVoice);
+}
+function say(text, rate = 0.8) {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = rate;
+    if (zhVoice) u.voice = zhVoice;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function audioNote() {
+  if (!('speechSynthesis' in window)) return '<p class="note">🔇 This browser can’t play spoken audio. Try Chrome, Edge or Safari.</p>';
+  const vs = speechSynthesis.getVoices();
+  if (vs.length && !zhVoice) return '<p class="note">🔇 No Chinese voice found on this device. Install a Chinese (zh-CN) text-to-speech voice in your system settings.</p>';
+  return '';
+}
+function bindSpeak(root) { root.querySelectorAll('[data-say]').forEach(b => b.onclick = () => say(b.dataset.say)); }
+
+/* ---------- Speech: recognition ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function lev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+function spokenOK(alts, word) {
+  const w = strip(word);
+  return alts.some(t => {
+    const s = strip(t);
+    if (s.includes(w)) return true;
+    if (w.length >= 4) return 1 - lev(s, w) / Math.max(s.length, w.length) >= 0.7;
+    return false;
+  });
+}
+function listenOnce(done) {
+  let finished = false;
+  const fin = r => { if (!finished) { finished = true; done(r); } };
+  try {
+    const r = new SR();
+    r.lang = 'zh-CN'; r.maxAlternatives = 5; r.interimResults = false; r.continuous = false;
+    r.onresult = e => {
+      const alts = [];
+      for (let i = 0; i < e.results.length; i++) for (let j = 0; j < e.results[i].length; j++) alts.push(e.results[i][j].transcript);
+      fin({ alts });
+    };
+    r.onerror = e => fin({ error: e.error || 'error' });
+    r.onend = () => fin({ error: 'no-speech' });
+    r.start();
+  } catch (e) { fin({ error: 'start-failed' }); }
+}
+const micHTML = () => `<div class="mic"><button class="btn mic-btn" id="micBtn">🎤 Tap and speak</button><p class="msg" id="micMsg" aria-live="polite"></p><div class="actions" id="micAlt" style="margin:0"></div></div>`;
+function wireMic(word, onPass) {
+  const btn = $('#micBtn'), msg = $('#micMsg'), alt = $('#micAlt');
+  let busy = false, tries = 0;
+  const offerSelf = () => {
+    alt.innerHTML = '<button class="btn ghost" id="selfOk">✔ I said it correctly</button>';
+    $('#selfOk').onclick = () => onPass(true);
+  };
+  if (!SR) {
+    msg.textContent = 'Voice recognition isn’t available in this browser (Chrome, Edge or Safari work best). Say the word aloud, then self-check.';
+    btn.disabled = true; offerSelf(); return;
+  }
+  const errs = {
+    'not-allowed': 'Microphone access is blocked. Allow it in your browser settings, or self-check below.',
+    'service-not-allowed': 'Microphone access is blocked. Allow it in your browser settings, or self-check below.',
+    'no-speech': 'I didn’t hear anything. Try again.',
+    'audio-capture': 'No microphone found. Self-check below.',
+    'network': 'Speech service unreachable. Try again or self-check.'
+  };
+  btn.onclick = () => {
+    if (busy) return;
+    busy = true; btn.classList.add('listening'); btn.textContent = '🎙 Listening…'; msg.textContent = '';
+    listenOnce(res => {
+      busy = false; btn.classList.remove('listening'); btn.textContent = '🎤 Tap and speak'; tries++;
+      if (res.error) { msg.textContent = errs[res.error] || ('Couldn’t listen (' + res.error + '). Try again.'); offerSelf(); return; }
+      if (spokenOK(res.alts, word)) onPass(false);
+      else { msg.innerHTML = 'I heard: <b>' + esc(res.alts[0] || '…') + '</b>. Try again!'; if (tries >= 1) offerSelf(); }
+    });
+  };
+}
+
+/* ---------- Home ---------- */
+let S = null; // current level session
+
+function home() {
+  S = null;
+  const done = Object.keys(save.cleared).filter(k => save.cleared[k] > 0).length;
+  app.innerHTML = `
+    <header class="hero">
+      <div class="seal" aria-hidden="true">字</div>
+      <h1>汉字闯关</h1>
+      <p class="tag">Hanzi Quest · ${WORDS.length} words · ${BATCHES} levels</p>
+      <div class="chips"><span>⭐ ${save.xp} XP</span><span>🏁 ${done}/${BATCHES} levels cleared</span></div>
+    </header>
+    ${audioNote()}
+    <div class="actions"><button class="btn ghost" id="words">📖 Word list</button></div>
+    <ol class="map">${Array.from({ length: BATCHES }, (_, b) => {
+      const ws = batchWords(b), open = isOpen(b), st = save.cleared[b] || 0;
+      return `<li><button class="level" data-b="${b}" ${open ? '' : 'disabled'}>
+        <span class="n">${b + 1}</span>
+        <span><span class="ws">${ws.map(w => '<span style="display:inline-block;margin-right:.7em">' + esc(w.w) + '</span>').join('')}</span><br><span class="meta">${ws.length} new words · checkpoint quiz</span></span>
+        <span class="st" aria-label="${st} stars">${open ? starsHTML(st) : '🔒'}</span></button></li>`;
+    }).join('')}</ol>
+    <footer>
+      <button class="btn quiet" id="unlock">${save.all ? '🔒 Re-lock levels' : '🔓 Unlock all levels'}</button>
+      <button class="btn quiet" id="reset">↺ Reset progress</button>
+    </footer>`;
+  app.querySelectorAll('.level').forEach(b => b.onclick = () => startLevel(+b.dataset.b));
+  $('#words').onclick = wordList;
+  $('#unlock').onclick = () => { save.all = !save.all; persist(); home(); };
+  $('#reset').onclick = () => { if (confirm('Reset all progress?')) { save = { cleared: {}, xp: 0, all: false }; persist(); home(); } };
+}
+
+function wordList() {
+  app.innerHTML = `
+    <header class="top"><button class="btn quiet" id="back">← Map</button><div class="lv">All words</div><div class="xp"></div></header>
+    ${audioNote()}
+    <ul class="list">${WORDS.map(w => `<li>
+      <div><span class="big" style="font-size:1.4rem">${esc(w.w)}</span> <span class="py">${esc(w.py)}</span><br><span class="en">${esc(w.en)}</span><br><span class="zh">${esc(w.zh)}</span></div>
+      <button class="spk" data-say="${esc(w.w)}" aria-label="Play ${esc(w.w)}">🔊</button></li>`).join('')}</ul>`;
+  $('#back').onclick = home; bindSpeak(app);
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Level flow ---------- */
+const STEPS = [
+  { short: 'Meet' }, { short: 'Stage 1 · Listen' }, { short: 'Stage 2 · Match' },
+  { short: 'Stage 3 · Speak' }, { short: 'Stage 4 · Sentence' }, { short: 'Checkpoint' }
+];
+
+function startLevel(b) { S = { b, words: batchWords(b), xp: 0 }; go(0); }
+function go(i) {
+  S.step = i;
+  [preview, stage1, stage2, stage3, stage4, quiz][i]();
+  window.scrollTo(0, 0);
+}
+function shell(i) {
+  app.innerHTML = `
+    <header class="top"><button class="btn quiet" id="back">← Map</button><div class="lv">Level ${S.b + 1}</div><div class="xp">⭐ ${save.xp + S.xp} XP</div></header>
+    <ol class="steps" aria-label="Progress">${STEPS.map((s, k) => `<li class="${k < i ? 'done' : k === i ? 'now' : ''}"><span>${s.short}</span></li>`).join('')}</ol>
+    <section id="stage" class="stage"></section>`;
+  $('#back').onclick = () => { if (confirm('Leave this level? Progress in this level will be lost.')) home(); };
+  return $('#stage');
+}
+const tail = `<div id="fb" class="fb" aria-live="polite"></div><div class="actions"><button class="btn primary hidden" id="next">Next →</button></div>`;
+
+/* Meet the words */
+function preview() {
+  const st = shell(0);
+  st.innerHTML = `
+    <h2>Meet the new words</h2>
+    <p class="sub">Tap 🔊 to listen. Read the meaning and the example, then start Stage 1.</p>
+    ${audioNote()}
+    <div class="cards">${S.words.map(w => `
+      <article class="wcard">
+        <div class="wrow"><div class="big">${esc(w.w)}</div><button class="spk" data-say="${esc(w.w)}" aria-label="Play ${esc(w.w)}">🔊</button></div>
+        <div class="py">${esc(w.py)}</div>
+        <div class="en">${esc(w.en)}</div>
+        <div class="zh">${esc(w.zh)}</div>
+        <div class="ex"><span>${hl(w.sent, w.w)}</span><button class="spk sm" data-say="${esc(w.sent)}" aria-label="Play sentence">🔊</button></div>
+      </article>`).join('')}</div>
+    <div class="actions"><button class="btn primary" id="go">Start Stage 1 →</button></div>`;
+  bindSpeak(st);
+  $('#go').onclick = () => go(1);
+}
+
+/* Stage 1: hear it, tap the characters in order */
+function stage1() {
+  const st = shell(1), q = shuffle(S.words);
+  let i = 0;
+  const round = () => {
+    if (i >= q.length) return go(2);
+    const w = q[i];
+    const chars = [...w.w].filter(c => !/[，、,\s]/.test(c));
+    const pool = [...new Set(WORDS.filter(x => x !== w).flatMap(x => [...x.w]).filter(c => !/[，、,\s]/.test(c) && !chars.includes(c)))];
+    const n = Math.max(4, 8 - chars.length);
+    const tiles = shuffle([...chars, ...shuffle(pool).slice(0, n)]);
+    st.innerHTML = `
+      <div class="count">Word ${i + 1} / ${q.length}</div>
+      <h2>Listen, then tap the characters in order</h2>
+      <div class="center"><button class="spk huge" id="play" aria-label="Play the word">🔊</button></div>
+      <div class="slots" id="slots">${chars.map(() => '<span class="slot"></span>').join('')}</div>
+      <div class="tiles" id="tiles">${tiles.map((c, k) => `<button class="tile" data-k="${k}">${esc(c)}</button>`).join('')}</div>
+      <div class="hintbar"><button class="btn quiet" id="hint">💡 Hint</button><span id="hintTxt"></span></div>${tail}`;
+    const slots = [...st.querySelectorAll('.slot')];
+    let pos = 0, missed = false;
+    $('#play').onclick = () => say(w.w);
+    setTimeout(() => say(w.w), 200);
+    $('#hint').onclick = () => { missed = true; $('#hintTxt').textContent = w.py + ' · ' + w.en; };
+    st.querySelectorAll('.tile').forEach(b => b.onclick = () => {
+      if (b.disabled) return;
+      if (tiles[+b.dataset.k] === chars[pos]) {
+        slots[pos].textContent = chars[pos]; slots[pos].classList.add('filled');
+        b.disabled = true; b.classList.add('used'); pos++;
+        if (pos === chars.length) {
+          st.querySelectorAll('.tile').forEach(x => x.disabled = true);
+          S.xp += missed ? 5 : 10;
+          $('#fb').className = 'fb good';
+          $('#fb').innerHTML = `✅ <span class="zhw">${esc(w.w)}</span> <span class="py">${esc(w.py)}</span> — ${esc(w.en)}`;
+          $('#next').classList.remove('hidden');
+          say(w.w);
+        }
+      } else { missed = true; shake(b); }
+    });
+    $('#next').onclick = () => { i++; round(); };
+  };
+  round();
+}
+
+/* Stage 2: match word to English meaning */
+function stage2() {
+  const st = shell(2), L = shuffle(S.words), R = shuffle(S.words);
+  let sel = null, done = 0;
+  st.innerHTML = `
+    <h2>Match each word to its English meaning</h2>
+    <p class="sub">Tap a word, then tap its meaning.</p>
+    <div class="match">
+      <div class="col">${L.map(w => `<button class="mbtn zhw" data-side="l" data-id="${w.id}">${esc(w.w)}</button>`).join('')}</div>
+      <div class="col">${R.map(w => `<button class="mbtn" data-side="r" data-id="${w.id}">${esc(w.en)}</button>`).join('')}</div>
+    </div>${tail}`;
+  $('#next').textContent = 'Next stage →';
+  st.querySelectorAll('.mbtn').forEach(b => b.onclick = () => {
+    if (b.classList.contains('ok')) return;
+    if (b.dataset.side === 'l') {
+      st.querySelectorAll('.mbtn[data-side="l"]').forEach(x => x.classList.remove('sel'));
+      sel = b; b.classList.add('sel'); $('#fb').textContent = '';
+      say(WORDS[+b.dataset.id].w);
+    } else {
+      if (!sel) { $('#fb').textContent = 'Pick a Chinese word first 👈'; return; }
+      if (sel.dataset.id === b.dataset.id) {
+        sel.classList.remove('sel'); sel.classList.add('ok'); b.classList.add('ok'); sel = null; done++; S.xp += 10;
+        if (done === L.length) { $('#fb').className = 'fb good'; $('#fb').textContent = '✅ All matched!'; $('#next').classList.remove('hidden'); }
+      } else { shake(sel); shake(b); sel.classList.remove('sel'); sel = null; }
+    }
+  });
+  $('#next').onclick = () => go(3);
+}
+
+/* Stage 3: pronounce the word */
+function stage3() {
+  const st = shell(3), q = shuffle(S.words);
+  let i = 0;
+  const round = () => {
+    if (i >= q.length) return go(4);
+    const w = q[i];
+    st.innerHTML = `
+      <div class="count">Word ${i + 1} / ${q.length}</div>
+      <h2>Say it out loud</h2>
+      <div class="focus"><div class="big xl">${esc(w.w)}</div><div class="py">${esc(w.py)}</div><div class="en">${esc(w.en)}</div>
+        <button class="btn ghost" id="listen">🔊 Hear the model</button></div>
+      ${micHTML()}${tail}`;
+    $('#listen').onclick = () => say(w.w);
+    let passed = false;
+    wireMic(w.w, self => {
+      if (passed) return; passed = true;
+      $('#micBtn').disabled = true; $('#micAlt').innerHTML = '';
+      S.xp += self ? 5 : 10;
+      $('#fb').className = 'fb good'; $('#fb').textContent = self ? '✅ Great, keep practising!' : '✅ Well said!';
+      $('#next').classList.remove('hidden');
+    });
+    $('#next').onclick = () => { i++; round(); };
+  };
+  round();
+}
+
+/* Stage 4: rearrange the pieces to build the sentence */
+function stage4() {
+  const st = shell(4), q = shuffle(S.words);
+  let i = 0;
+  const round = () => {
+    if (i >= q.length) return go(5);
+    const w = q[i], correct = w.s.join('');
+    const items = w.s.map((t, k) => ({ id: k, t }));
+    let order = shuffle(items), guard = 0;
+    while (items.length > 1 && order.map(x => x.t).join('') === correct && guard++ < 20) order = shuffle(items);
+    let pool = [...order], ans = [], solved = false;
+    st.innerHTML = `
+      <div class="count">Sentence ${i + 1} / ${q.length}</div>
+      <h2>Put the pieces in order to make a sentence</h2>
+      <p class="sub">Key word: <b class="zhw">${esc(w.w)}</b> — ${esc(w.en)}</p>
+      <div class="answer" id="ans"></div>
+      <div class="tiles wide" id="pool"></div>
+      <div class="actions"><button class="btn ghost" id="reset">↺ Reset</button><button class="btn primary" id="check" disabled>Check</button></div>${tail}`;
+    const draw = () => {
+      $('#ans').innerHTML = ans.length ? ans.map(x => `<button class="tile chunk" data-id="${x.id}">${esc(x.t)}</button>`).join('') : '<span class="ph">Tap the pieces below…</span>';
+      $('#pool').innerHTML = pool.map(x => `<button class="tile chunk" data-id="${x.id}">${esc(x.t)}</button>`).join('');
+      $('#check').disabled = pool.length > 0 || solved;
+    };
+    const move = (from, to, id) => { const k = from.findIndex(x => x.id === id); if (k > -1) to.push(from.splice(k, 1)[0]); };
+    $('#pool').onclick = e => { const b = e.target.closest('.tile'); if (!b || solved) return; move(pool, ans, +b.dataset.id); $('#fb').textContent = ''; $('#fb').className = 'fb'; draw(); };
+    $('#ans').onclick = e => { const b = e.target.closest('.tile'); if (!b || solved) return; move(ans, pool, +b.dataset.id); draw(); };
+    $('#reset').onclick = () => { if (solved) return; pool = [...order]; ans = []; draw(); };
+    $('#check').onclick = () => {
+      if (ans.map(x => x.t).join('') === correct) {
+        solved = true; S.xp += 15 - Math.min(10, (S.s4miss || 0) * 5); S.s4miss = 0;
+        $('#ans').classList.add('good'); $('#check').disabled = true; $('#reset').disabled = true;
+        $('#fb').className = 'fb good'; $('#fb').innerHTML = '✅ ' + hl(w.sent, w.w);
+        $('#next').classList.remove('hidden'); say(w.sent);
+      } else {
+        S.s4miss = (S.s4miss || 0) + 1; shake($('#ans'));
+        $('#fb').className = 'fb bad'; $('#fb').textContent = 'Not quite. Tap a piece to take it back, then try again.';
+      }
+    };
+    $('#next').onclick = () => { i++; round(); };
+    draw();
+  };
+  round();
+}
+
+/* ---------- Checkpoint quiz ---------- */
+function distract(w, n) {
+  const pool = WORDS.slice(0, (S.b + 1) * PER).filter(x => x !== w);
+  const len = [...w.w].length;
+  const same = shuffle(pool.filter(x => [...x.w].length === len));
+  const rest = shuffle(pool.filter(x => !same.includes(x)));
+  return [...same, ...rest].slice(0, n);
+}
+function buildQuiz() {
+  const bw = S.words, need = 7 - bw.length, earlier = WORDS.slice(0, S.b * PER);
+  const extras = (earlier.length ? shuffle(earlier) : shuffle(bw)).slice(0, need);
+  const words = shuffle([...bw, ...extras]);
+  const base = ['cloze', 'meaning', 'type', 'speak'];
+  const types = shuffle([...base, ...shuffle(base).slice(0, 3)]);
+  return words.map((w, i) => ({ w, type: types[i] }));
+}
+function quiz() {
+  const st = shell(5);
+  S.qs = buildQuiz(); S.qi = 0; S.score = 0;
+  ask();
+}
+function ask() {
+  const st = $('#stage'), q = S.qs[S.qi], w = q.w;
+  let answered = false;
+  const head = `<div class="count">Question ${S.qi + 1} / ${S.qs.length} · ✔ ${S.score}</div>`;
+  const finish = ok => {
+    if (answered) return; answered = true;
+    if (ok) { S.score++; S.xp += 10; }
+    const last = S.qi === S.qs.length - 1;
+    $('#fb').className = 'fb ' + (ok ? 'good' : 'bad');
+    $('#fb').innerHTML = (ok ? '✅ Correct! ' : '❌ Answer: ') + `<span class="zhw">${esc(w.w)}</span> <span class="py">${esc(w.py)}</span> — ${esc(w.en)}`;
+    const nx = $('#next'); nx.textContent = last ? 'See results' : 'Next →'; nx.classList.remove('hidden');
+    const sk = $('#skip'); if (sk) sk.classList.add('hidden');
+    say(w.w);
+  };
+  if (q.type === 'cloze' || q.type === 'meaning') {
+    const opts = shuffle([w, ...distract(w, 3)]);
+    const prompt = q.type === 'cloze'
+      ? `<h2>Choose the word that completes the sentence</h2><p class="sentence">${esc(w.sent).replace(esc(w.w), '<span class="blank">＿＿＿</span>')}</p>`
+      : `<h2>Which word matches this meaning?</h2><div class="focus"><div class="en lg">${esc(w.en)}</div><div class="zh">${esc(w.zh)}</div></div>`;
+    st.innerHTML = head + prompt + `<div class="opts">${opts.map((o, k) => `<button class="opt zhw" data-k="${k}">${esc(o.w)}</button>`).join('')}</div>` + tail;
+    st.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+      if (answered) return;
+      const ok = opts[+b.dataset.k] === w;
+      st.querySelectorAll('.opt').forEach((x, k) => { x.disabled = true; if (opts[k] === w) x.classList.add('ok'); });
+      if (!ok) b.classList.add('bad');
+      finish(ok);
+    });
+  } else if (q.type === 'type') {
+    st.innerHTML = head + `
+      <h2>Type the word in Chinese characters</h2>
+      <div class="focus"><div class="py xl">${esc(w.py)}</div><div class="en">${esc(w.en)}</div></div>
+      <form id="tf" class="typeform" autocomplete="off">
+        <input id="ti" type="text" lang="zh-CN" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="汉字…" aria-label="Type the characters">
+        <button class="btn primary" type="submit">Check</button>
+      </form>
+      <p class="sub center">Tip: switch to your Chinese (pinyin) keyboard to type.</p>` + tail;
+    const ti = $('#ti');
+    ti.focus();
+    ti.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.isComposing || e.keyCode === 229)) e.preventDefault(); });
+    $('#tf').onsubmit = e => {
+      e.preventDefault();
+      if (answered) return;
+      const v = strip(ti.value); if (!v) return;
+      ti.disabled = true; $('#tf button').disabled = true;
+      finish(v === strip(w.w));
+    };
+  } else {
+    st.innerHTML = head + `
+      <h2>Read this out loud</h2>
+      <div class="focus"><div class="py xl">${esc(w.py)}</div><div class="en">${esc(w.en)}</div></div>
+      ${micHTML()}
+      <div class="actions"><button class="btn quiet" id="skip">Skip</button></div>` + tail;
+    wireMic(w.w, () => { $('#micBtn').disabled = true; $('#micAlt').innerHTML = ''; finish(true); });
+    $('#skip').onclick = () => { if (answered) return; $('#micBtn').disabled = true; $('#micAlt').innerHTML = ''; finish(false); };
+  }
+  $('#next').onclick = () => { S.qi++; if (S.qi < S.qs.length) { ask(); window.scrollTo(0, 0); } else result(); };
+}
+
+function result() {
+  const st = $('#stage'), b = S.b;
+  const pass = S.score >= PASS, stars = S.score === 7 ? 3 : S.score === 6 ? 2 : S.score === 5 ? 1 : 0;
+  if (pass) save.cleared[b] = Math.max(save.cleared[b] || 0, stars);
+  save.xp += S.xp + (pass ? stars * 20 : 0); S.xp = 0;
+  persist();
+  const lastLevel = b === BATCHES - 1;
+  st.innerHTML = `<div class="result">
+    <div class="stars" aria-label="${stars} stars">${starsHTML(stars)}</div>
+    <div class="score">${S.score} / ${S.qs.length}</div>
+    <h2>${pass ? (lastLevel ? '🎉 You’ve finished every level!' : 'Checkpoint cleared!') : 'So close — you need ' + PASS + ' to pass'}</h2>
+    <p class="sub">${pass ? 'These words are now in your pocket:' : 'Review the words and try again with a fresh set of questions.'}</p>
+    <div class="chiplist">${S.words.map(w => `<span>${esc(w.w)}</span>`).join('')}</div>
+    <div class="actions">
+      ${pass && !lastLevel ? '<button class="btn primary" id="nextLv">Next level →</button>' : ''}
+      <button class="btn ${pass && !lastLevel ? 'ghost' : 'primary'}" id="retry">${pass ? '↺ Replay checkpoint' : '↺ Try again'}</button>
+      ${pass ? '' : '<button class="btn ghost" id="review">📖 Review words</button>'}
+      <button class="btn ghost" id="map">Map</button>
+    </div></div>`;
+  $('#retry').onclick = () => go(5);
+  $('#map').onclick = home;
+  if ($('#nextLv')) $('#nextLv').onclick = () => startLevel(b + 1);
+  if ($('#review')) $('#review').onclick = () => go(0);
+  if (pass) confetti();
+  window.scrollTo(0, 0);
+}
+
+function confetti() {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const f = document.createElement('div'); f.className = 'confetti'; f.setAttribute('aria-hidden', 'true');
+  const cols = ['#c2392b', '#d09a26', '#2e7d5a', '#3a6ea5'];
+  for (let i = 0; i < 44; i++) {
+    const s = document.createElement('i');
+    s.style.left = Math.random() * 100 + '%'; s.style.background = cols[i % 4];
+    s.style.animationDelay = Math.random() * 0.8 + 's'; s.style.animationDuration = 2 + Math.random() * 1.5 + 's';
+    f.appendChild(s);
+  }
+  document.body.appendChild(f); setTimeout(() => f.remove(), 4800);
+}
+
+home();
+})();
+</script>
+</body>
+</html>
